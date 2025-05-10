@@ -1,0 +1,14 @@
+—every morning, check for active stocks, and return a list of 2-5 which fit my indicators
+
+—day trade them to make money
+
+*--need to have an open websocket for real time data
+
+—log every trade
+
+—after each time the script runs, compare logs to past logs, and return an effectiveness rating of the strategy
+
+—I want to be sent notifications when:
+	—I make money on a trade
+	—the strategy is updated
+	—at the end of the week with numbers on how effective it was
