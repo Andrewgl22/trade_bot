@@ -11,8 +11,8 @@ from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.data.enums import DataFeed
 
 # Alpaca API setup (replace with your real keys)
-API_KEY = 'YOUR_API_KEY'
-API_SECRET = 'YOUR_API_SECRET'
+API_KEY = ''
+API_SECRET = ''
 
 # Settings
 SYMBOL = 'SPY'

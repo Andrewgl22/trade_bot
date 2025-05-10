@@ -2,10 +2,10 @@ import requests
 from datetime import datetime, timedelta
 
 # NewsAPI Setup (Free tier)
-NEWSAPI_KEY = 'your_newsapi_key'  # Get one from https://newsapi.org/
+NEWSAPI_KEY = ''  # Get one from https://newsapi.org/
 
 # Finnhub Setup (Free tier)
-FINNHUB_API_KEY = 'your_finnhub_key'  # Get one from https://finnhub.io/
+FINNHUB_API_KEY = ''  # Get one from https://finnhub.io/
 
 # Sample symbols to get context for
 SYMBOLS = ['AAPL', 'TSLA', 'AMD']
