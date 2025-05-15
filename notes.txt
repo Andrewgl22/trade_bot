@@ -18,7 +18,7 @@ Trade Bot
 
 -host on Digital Ocean Droplet - $6/month max
 
-*change made for test 3
+*change made for test 4
 
 ***
 --CI/CD pipeline so that when code is pushed to github, it updates the droplet
