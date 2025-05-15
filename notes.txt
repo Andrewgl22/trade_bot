@@ -18,7 +18,7 @@ Trade Bot
 
 -host on Digital Ocean Droplet - $6/month max
 
-*change made for test 2
+*change made for test 3
 
 ***
 --CI/CD pipeline so that when code is pushed to github, it updates the droplet
@@ -37,3 +37,6 @@ paste the pub key into the droplet, and it can then connect to your local machin
 the private key lives.
 
 *the droplet IPv4 is: 137.184.190.88
+
+*I made a 2nd set of ssh keys inside .ssh folder on my computer called trade_bot_rsa but
+I'm not sure that I actually need them
