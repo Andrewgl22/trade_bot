@@ -16,6 +16,7 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
+          echo "Private key file exists? $(test -f ~/.ssh/id_rsa && echo yes || echo no)"
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 137.184.190.88 >> ~/.ssh/known_hosts
