@@ -1,27 +1,12 @@
-—every morning, check for active stocks, and return a list of 2-5 which fit my indicators
 
-—day trade them to make money
-
-*--need to have an open websocket for real time data
-
-—log every trade
-
-—after each time the script runs, compare logs to past logs, and return an effectiveness rating of the strategy
-
-—I want to be sent notifications when:
-	—I make money on a trade
-	—the strategy is updated
-	—at the end of the week with numbers on how effective it was
-
-
-Trade Bot
-
--host on Digital Ocean Droplet - $6/month max
 
 *change made for test 4
 
 ***
 --CI/CD pipeline so that when code is pushed to github, it updates the droplet
+
+
+
 	-generate a public/private key locally, add them to github (DONE)	
 		*github needs local deploy keys, they were generated with this command:
 		ssh-keygen -t ed25519 -C "deploy@tradebot -f ~/deploy_key 
@@ -38,5 +23,7 @@ the private key lives.
 
 *the droplet IPv4 is: 137.184.190.88
 
-*I made a 2nd set of ssh keys inside .ssh folder on my computer called trade_bot_rsa but
-I'm not sure that I actually need them
+*I made a 2nd set of ssh keys inside .ssh folder on my computer called trade_bot_rsa that
+is the one I actually used.
+
+*the private key must include ---BEGIN RSA PRIVATE KEY and ---END RSA PRIVATE KEY lines
