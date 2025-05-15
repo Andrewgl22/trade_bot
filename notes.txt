@@ -12,3 +12,28 @@
 	—I make money on a trade
 	—the strategy is updated
 	—at the end of the week with numbers on how effective it was
+
+
+Trade Bot
+
+-host on Digital Ocean Droplet - $6/month max
+
+*change made for test
+
+***
+--CI/CD pipeline so that when code is pushed to github, it updates the droplet
+	-generate a public/private key locally, add them to github (DONE)	
+		*github needs local deploy keys, they were generated with this command:
+		ssh-keygen -t ed25519 -C "deploy@tradebot -f ~/deploy_key 
+			path: users/andrewlederman/deploy_key (private) and deploy_key.pub (public)
+			*the private key should be stored in github secrets(DONE), and the public key
+			should be stored in the droplet. So we know where to go, and the private key
+			gives github access to the droplet.
+	-write a github action that will SSH into the droplet and update the code with rsync	
+	
+--to create the droplet, I use an SSH key I generated to connect to it. To do this,
+you run ssh-keygen on your computer. It generates a private and public key locally. You
+paste the pub key into the droplet, and it can then connect to your local machine where
+the private key lives.
+
+*the droplet IPv4 is: 137.184.190.88

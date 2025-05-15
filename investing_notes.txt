@@ -1,0 +1,40 @@
+Go 6 weeks with a proven strategy in paper trading, if you can do that 6 weeks and be profitable, that’s when you can go to trading real money.
+
+RSI Relative Strength Index - it’s a number from 0 to 100, indicates whether a security is overbought or oversold.
+
+
+What is the Kelly Formula?
+
+What is Statistical Arbitrage Trading?
+
+Technical data is price data for a stock, fundamental data is either micro data about a specific asset, the yield of a bond for instance, or macro data would be about inflation, GDP, economies at large. Technical and Fundamental data are two types of data to look at, and fundamental data tends to lead to larger returns. 
+
+
+Good ratios to look at: 
+
+Sortino Ratio → Best risk/reward ratio since it only penalizes downside risk.
+Beta → Helps select stocks that match your preferred risk level.
+Maximum Drawdown (MDD) → Avoids stocks that could wipe out gains quickly.
+Momentum Indicators (MACD, RSI, SMA) → Helps with timing your automated trades.
+
+
+What is Standard deviation in equities?
+
+What is the Gaussian Normal Distribution?
+
+What is the Sharpe Ratio?
+	-a way of measuring risk/reward of an equity. Sounds like you can get around 0.2 as a good ratio. 
+
+The more frequently you trade, the more commission fees. Some investors just buy and hold, (I have that for my retirement fund) but I want to trade dynamically, multiple times a month, still need to determine what’s a good fit there.
+
+
+Mean-Reversion Swing Strategy
+
+Fixed Risk/Reward is important, set your exact ratio into your system.
+
+Drawdowns are losing streaks. No trader can avoid having these sometimes
+
+*Your system has to outperform the S&P500, otherwise you should just buy stocks or etfs.
+
+You want to calculate your risk reward ratio, and you can calculate the likelihood of a losing streak.
+
