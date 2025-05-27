@@ -64,3 +64,15 @@ it said it does make more sense to store the variables in github, and inject the
 the github action so it will then update the .env file in the droplet from the action.
 As of now only the Alpaca paper account is running, so once I'm ready to trade real money
 I will need to add a new set of secret keys.
+
+
+5/27/25:
+
+I updated the GitHub Action to send environment variables to the .env file on the droplet.
+The .env file is hidden on the droplet machine, but it is at root/trading-bot. 
+ls -a will reveal it.
+
+Some important things to remember: When you create the droplet, to create a secure
+connection between the droplet and GitHub, you create an SSH key pair. The public
+key is what gets stored on the droplet, and then the secret key lives on GitHub,
+as a key to access the droplet. 
