@@ -24,8 +24,8 @@ jobs:
       - name: Update .env secrets
         run: |
           {
-            echo "ALPACA_PAPER_ACCOUNT_KEY_ID=${ALPACA_PAPER_ACCOUNT_KEY_ID}"
-            echo "ALPACA_PAPER_ACCOUNT_SECRET_KEY=${ALPACA_PAPER_ACCOUNT_SECRET_KEY}"
+            echo "ALPACA_PAPER_ACCOUNT_KEY_ID=\"${ALPACA_PAPER_ACCOUNT_KEY_ID}\""
+            echo "ALPACA_PAPER_ACCOUNT_SECRET_KEY=\"${ALPACA_PAPER_ACCOUNT_SECRET_KEY}\""
           } > .env
         env:
           ALPACA_PAPER_ACCOUNT_KEY_ID: ${{secrets.ALPACA_PAPER_ACCOUNT_KEY_ID}}
