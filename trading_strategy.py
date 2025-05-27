@@ -10,6 +10,8 @@ from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.data.enums import DataFeed
 
+# change for test
+
 # Alpaca API setup (replace with your real keys)
 API_KEY = ''
 API_SECRET = ''
@@ -28,7 +30,7 @@ stream = StockDataStream(API_KEY, API_SECRET, feed=DataFeed.SIP)
 
 entry_price = None
 
-def log_trade(action, symbol, qty, price, timestamp, reason=""):
+def log_trade(action, symbol, qty, price, timestamp, reason=""): 
     file_exists = os.path.isfile(TRADE_LOG_FILE)
     with open(TRADE_LOG_FILE, mode='a', newline='') as file:
         writer = csv.writer(file)

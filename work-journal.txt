@@ -1,0 +1,66 @@
+
+
+*change made for test 4
+
+***
+--CI/CD pipeline so that when code is pushed to github, it updates the droplet
+
+
+
+	-generate a public/private key locally, add them to github (DONE)	
+		*github needs local deploy keys, they were generated with this command:
+		ssh-keygen -t ed25519 -C "deploy@tradebot -f ~/deploy_key 
+			path: users/andrewlederman/deploy_key (private) and deploy_key.pub (public)
+			*the private key should be stored in github secrets(DONE), and the public key
+			should be stored in the droplet. So we know where to go, and the private key
+			gives github access to the droplet.
+	-write a github action that will SSH into the droplet and update the code with rsync	
+	
+--to create the droplet, I use an SSH key I generated to connect to it. To do this,
+you run ssh-keygen on your computer. It generates a private and public key locally. You
+paste the pub key into the droplet, and it can then connect to your local machine where
+the private key lives.
+
+*the droplet IPv4 is: 137.184.190.88
+
+*I made a 2nd set of ssh keys inside .ssh folder on my computer called trade_bot_rsa that
+is the one I actually used.
+
+
+*******
+
+5/14/25 CI/CD pipeline is set up so that when I push local code to github, it triggers
+a github action and sends the code to my digital ocean droplet using rsync. Doing this
+required a public/private ssh key connection between github and droplet. The droplet must
+have the public key. This will live in root/.ssh/authorized_keys on the droplet. On github,
+you put the private key in a secret variable which will then be injected into the action script.
+
+*the private key must include ---BEGIN RSA PRIVATE KEY and ---END RSA PRIVATE KEY lines
+
+To create an SSH key pair, simply run ssh-keygen in a local terminal. It will add a keypair
+to your designated folder, ideally have it in .ssh (hidden folder at the user level).
+The public key will be called key_name.pub, and the file called key_name is the private key.
+You can see this by running cat key_name or cat key_name.pub to see the contents.
+
+The github action runs when code is pushed to main. A github action spins up a virtual
+machine called a runner. This virtual machine is what will actually run the commands
+you tell it to run in your action script. GitHub actions live in a .github/workflows folder.
+
+**This entire set up, to push local code to github and then to the droplet or another cloud machine,
+requires 4 machines: your local machine, the server that hosts github, the virtual machine
+runner that spins up when the github action runs, and finally the server with the droplet.
+That's a chain of 4 computers required to make this simple set up occur. It's necessary
+infrastructure.
+
+
+********
+
+
+5/17/25:
+
+I added the alpaca paper account api key and secret key into github. Initially gpt recommended
+I manually add a .env file into the droplet, but since I am automating this pipeline,
+it said it does make more sense to store the variables in github, and inject them into 
+the github action so it will then update the .env file in the droplet from the action.
+As of now only the Alpaca paper account is running, so once I'm ready to trade real money
+I will need to add a new set of secret keys.
