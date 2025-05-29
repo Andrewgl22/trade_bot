@@ -28,25 +28,26 @@ jobs:
             --exclude='.github'
 
       - name: Run secure Docker container
+        env:
+          ALPACA_PAPER_ACCOUNT_KEY_ID: ${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }}
+          ALPACA_PAPER_ACCOUNT_SECRET_KEY: ${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }}
         run: |
-          ssh root@137.184.190.88 << 'EOF'
-            cd /root/trading-bot
-
-            # Stop and remove old container if it exists
-            docker stop trading-bot || true
-            docker rm trading-bot || true
-
-            # Build the Docker image
-            docker build -t trading-bot .
-
-            # Run hardened container with injected secrets
+          ssh root@137.184.190.88 "
+            cd /root/trading-bot &&
+      
+            docker stop trading-bot || true &&
+            docker rm trading-bot || true &&
+      
+            docker build -t trading-bot . &&
+      
             docker run -d \
               --restart always \
               --name trading-bot \
               --read-only \
               --cap-drop ALL \
               --user botuser \
-              -e ALPACA_PAPER_ACCOUNT_KEY_ID=${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }} \
-              -e ALPACA_PAPER_ACCOUNT_SECRET_KEY=${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }} \
+              -e ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID \
+              -e ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY \
               trading-bot
-          EOF
+          "
+            
