@@ -33,23 +33,23 @@ jobs:
           ALPACA_PAPER_ACCOUNT_SECRET_KEY: ${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }}
         run: |
           ssh root@137.184.190.88 "
-            cd /root/trading-bot &&
-      
-            docker stop trading-bot || true &&
-            docker rm trading-bot || true &&
-      
-            docker build -t trading-bot . &&
+            export ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID
+            export ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY
 
-            echo "ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID"
-            echo "ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY"
+            cd /root/trading-bot
 
-            echo "Running: docker run -d --name trading-bot ... trading-bot"
-      
+            docker stop trading-bot || true
+            docker rm trading-bot || true
+
+            docker build -t trading-bot .
+
+            echo \"Running: docker run -d --name trading-bot ... trading-bot\"
+            echo \"ALPACA_PAPER_ACCOUNT_KEY_ID=\$ALPACA_PAPER_ACCOUNT_KEY_ID\"
+            echo \"ALPACA_PAPER_ACCOUNT_SECRET_KEY=\$ALPACA_PAPER_ACCOUNT_SECRET_KEY\"
+
             docker run -d --restart always --name trading-bot \
-            --read-only --cap-drop ALL --user botuser \
-            -e "ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID" \
-            -e "ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY" \
-            trading-bot
+              --read-only --cap-drop ALL --user botuser \
+              -e \"ALPACA_PAPER_ACCOUNT_KEY_ID=\$ALPACA_PAPER_ACCOUNT_KEY_ID\" \
+              -e \"ALPACA_PAPER_ACCOUNT_SECRET_KEY=\$ALPACA_PAPER_ACCOUNT_SECRET_KEY\" \
+              trading-bot
           "
-        
-            
