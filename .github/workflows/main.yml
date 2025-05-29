@@ -16,24 +16,38 @@ jobs:
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "Private key file exists? $(test -f ~/.ssh/id_rsa && echo yes || echo no)"
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 137.184.190.88 >> ~/.ssh/known_hosts
 
-      - name: Update .env secrets
-        run: |
-          {
-            echo "ALPACA_PAPER_ACCOUNT_KEY_ID=\"${ALPACA_PAPER_ACCOUNT_KEY_ID}\""
-            echo "ALPACA_PAPER_ACCOUNT_SECRET_KEY=\"${ALPACA_PAPER_ACCOUNT_SECRET_KEY}\""
-          } > .env
-        env:
-          ALPACA_PAPER_ACCOUNT_KEY_ID: ${{secrets.ALPACA_PAPER_ACCOUNT_KEY_ID}}
-          ALPACA_PAPER_ACCOUNT_SECRET_KEY: ${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }}
-
-      - name: Deploy via rsync
+      - name: Deploy code via rsync
         run: |
           rsync -avz --delete ./ root@137.184.190.88:/root/trading-bot \
             --exclude='.git' \
             --exclude='venv' \
             --exclude='.github'
+
+      - name: Run secure Docker container
+        run: |
+          ssh root@137.184.190.88 << 'EOF'
+            cd /root/trading-bot
+
+            # Stop and remove old container if it exists
+            docker stop trading-bot || true
+            docker rm trading-bot || true
+
+            # Build the Docker image
+            docker build -t trading-bot .
+
+            # Run hardened container with injected secrets
+            docker run -d \
+              --restart always \
+              --name trading-bot \
+              --read-only \
+              --no-new-privileges \
+              --cap-drop ALL \
+              --user botuser \
+              -e ALPACA_PAPER_ACCOUNT_KEY_ID=${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }} \
+              -e ALPACA_PAPER_ACCOUNT_SECRET_KEY=${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }} \
+              trading-bot
+          EOF
