@@ -42,16 +42,14 @@ jobs:
 
             echo "ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID"
             echo "ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY"
+
+            echo "Running: docker run -d --name trading-bot ... trading-bot"
       
-            docker run -d \
-              --restart always \
-              --name trading-bot \
-              --read-only \
-              --cap-drop ALL \
-              --user botuser \
-              -e ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID \
-              -e ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY \
-              trading-bot
+            docker run -d --restart always --name trading-bot \
+            --read-only --cap-drop ALL --user botuser \
+            -e "ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID" \
+            -e "ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY" \
+            trading-bot
           "
         
             
