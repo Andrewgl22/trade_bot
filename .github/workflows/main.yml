@@ -44,7 +44,6 @@ jobs:
               --restart always \
               --name trading-bot \
               --read-only \
-              --no-new-privileges \
               --cap-drop ALL \
               --user botuser \
               -e ALPACA_PAPER_ACCOUNT_KEY_ID=${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }} \
