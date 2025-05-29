@@ -164,3 +164,17 @@ Ok I added the firewall too. Easy to set up, I allowed all traffic to the IP add
 which is common although not entirely secure, but then I allowed only SSH traffic
 which is on port 22. So it's like saying, anyone can access this address, but you
 can't get in without the secret key.
+
+5/29/25:
+
+Got the full thing to work, Docker CI/CD is running the  container on the droplet.
+Some useful commands:
+	-docker ps (this will list all running containres)
+	-docker logs trading-bot will log everything that has been logged for the container
+
+There were some weird string interpolation issues with variables in the yaml file,
+but that got sorted.
+
+The Docker container exits immediately when there is no CMD line. I commented it
+out because I didn't want it running anything yet. So fix that and the pipeline should
+work.
