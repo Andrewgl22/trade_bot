@@ -39,6 +39,9 @@ jobs:
             docker rm trading-bot || true &&
       
             docker build -t trading-bot . &&
+
+            echo "ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID"
+            echo "ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY"
       
             docker run -d \
               --restart always \
@@ -50,4 +53,5 @@ jobs:
               -e ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY \
               trading-bot
           "
+        
             
