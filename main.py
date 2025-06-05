@@ -10,7 +10,7 @@ from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.data.enums import DataFeed
 
-# change for test
+#new change for test
 
 # Alpaca API setup (replace with your real keys)
 API_KEY = os.environ.get("ALPACA_PAPER_ACCOUNT_KEY_ID")
