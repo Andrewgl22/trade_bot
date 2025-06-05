@@ -1,11 +1,29 @@
 
 
+
+************************************************************************
+6/5/25
+
+Prepping next set of steps. I need to:
+
+-get the alpaca keys accessible to the entry code. I believe this involves
+using os.environs given how I injected them into the docker run command.
+
+-determine a simple initial test action to make the connection to the API
+
+-set up a CMD line in the Dockerfile so that the container actually does something
+and doesn't exit immediately.
+
+
+
+************************************************************************
+
+
+
 *change made for test 4
 
 ***
 --CI/CD pipeline so that when code is pushed to github, it updates the droplet
-
-
 
 	-generate a public/private key locally, add them to github (DONE)	
 		*github needs local deploy keys, they were generated with this command:
@@ -169,7 +187,7 @@ can't get in without the secret key.
 
 Got the full thing to work, Docker CI/CD is running the  container on the droplet.
 Some useful commands:
-	-docker ps (this will list all running containres)
+	-docker ps (this will list all running containers)
 	-docker logs trading-bot will log everything that has been logged for the container
 
 There were some weird string interpolation issues with variables in the yaml file,

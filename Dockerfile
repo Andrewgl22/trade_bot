@@ -21,4 +21,4 @@ RUN chown -R botuser:botuser /app
 USER botuser
 
 # Run the trading bot
-# CMD ["python", "bot.py"]
+CMD ["python", "main.py"]

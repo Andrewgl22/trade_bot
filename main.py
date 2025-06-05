@@ -13,8 +13,8 @@ from alpaca.data.enums import DataFeed
 # change for test
 
 # Alpaca API setup (replace with your real keys)
-API_KEY = ''
-API_SECRET = ''
+API_KEY = os.environ.get("ALPACA_PAPER_ACCOUNT_KEY_ID")
+API_SECRET = os.environ.get("ALPACA_PAPER_ACCOUNT_SECRET_KEY")
 
 # Settings
 SYMBOL = 'SPY'
@@ -75,7 +75,7 @@ def place_order(price):
             time_in_force=TimeInForce.GTC
         ))
         print(f"Buy order placed for {qty} shares of {SYMBOL} at ${price:.2f}")
-        log_trade("BUY", SYMBOL, qty, price, datetime.utcnow(), "Signal met")
+        # log_trade("BUY", SYMBOL, qty, price, datetime.utcnow(), "Signal met")
         entry_price = price
 
 def check_exit(price):
@@ -107,4 +107,4 @@ async def on_bar(bar):
     else:
         check_exit(bar.close)
 
-stream.run()
+place_order()
