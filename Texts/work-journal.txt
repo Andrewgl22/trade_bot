@@ -1,4 +1,24 @@
 
+************************************************************************
+6/6/25
+
+I realized the alpaca-py library is better than the main SDK. I redid
+the file that will connect to the API and create the Trading Client. single
+point of connection. I will make a 2nd streaming client once I get this first one 
+running. 
+
+-added alpaca-py to requirements.txt
+-renamed alpaca_client.py and made it a python file to create a trade client
+with the secret keys imported from os.environ.
+-from alpaca_client import trading_client should be added to any file making 
+a trade.
+
+There are different type of market orders you can make. You make them to the same
+endpoint, but you pass specifics as an object so you know which thing to buy or sell
+etc. There is a section of the api called enums, which can give you the list of
+possiblities for each thing. For instance, one enum is called order side I think, 
+this is the lingo for which side of the trade do you want, meaning are you buying
+or selling.
 
 
 ************************************************************************
@@ -13,6 +33,10 @@ using os.environs given how I injected them into the docker run command.
 
 -set up a CMD line in the Dockerfile so that the container actually does something
 and doesn't exit immediately.
+
+**These have been done. To access the keys passed into the docker run command, you
+import os, and run os.environ.get("name of key"). I created main.py, which is the entry
+point to the app, and needs the if name = main section.
 
 
 
