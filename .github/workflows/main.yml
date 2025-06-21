@@ -41,6 +41,8 @@ jobs:
             docker stop trading-bot || true
             docker rm trading-bot || true
 
+            docker system prune -af
+
             docker build -t trading-bot .
 
             echo \"Running: docker run -d --name trading-bot ... trading-bot\"
