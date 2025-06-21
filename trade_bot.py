@@ -23,7 +23,7 @@ TRADE_LOG_FILE = 'trade_log.csv'
 
 entry_price = None
 
-def test_connection():
+def test_trade():
     qty = 1
     if qty > 0:
         trading_client.submit_order(MarketOrderRequest(
@@ -113,4 +113,3 @@ def check_exit(price):
 #     else:
 #         check_exit(bar.close)
 
-test_connection()
