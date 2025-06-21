@@ -42,6 +42,7 @@ jobs:
             docker rm trading-bot || true
 
             docker system prune -af
+            rm -rf /run/docker/runtime-runc/*
 
             docker build -t trading-bot .
 
