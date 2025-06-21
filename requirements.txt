@@ -1,5 +1,6 @@
 pandas
 numpy
+ta
 python-dotenv
 requests
 alpaca-py
