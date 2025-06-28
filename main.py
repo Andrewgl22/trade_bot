@@ -1,5 +1,6 @@
-from trade_bot import test_trade 
+from trade_bot import run_trading_day 
+import asyncio
 
 if __name__ == "__main__":
-   test_trade()
+   asyncio.run(run_trading_day())
 

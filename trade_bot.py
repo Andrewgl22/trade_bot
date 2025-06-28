@@ -116,11 +116,9 @@ def log_trade(action, symbol, qty, price, timestamp, reason=""):
             writer.writerow(['action', 'symbol', 'qty', 'price', 'timestamp', 'reason'])
         writer.writerow([action, symbol, qty, price, timestamp, reason])
 
-
 def get_historical_data(symbol, limit=100):
     bars = trading_client.get_bars(symbol_or_symbols=symbol, timeframe=TIMEFRAME, limit=limit).df
     return bars[bars['symbol'] == symbol]
-
 
 def compute_indicators(df):
     df['ema9'] = ta.trend.ema_indicator(df['close'], window=9)
@@ -190,10 +188,6 @@ def place_order(symbol, price, df, side="buy"):
     else:
         positions[symbol]["in_position"] = False
         positions[symbol]["entry_price"] = None
-
-
-
-
 
 def test_trade():
         # Settings
