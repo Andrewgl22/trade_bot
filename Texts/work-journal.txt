@@ -1,5 +1,17 @@
 
 ************************************************************************
+6/20/25
+
+Ok, the infrsatructure is all set up, the pipeline works, and alpaca makes buy orders. Awesome.
+
+Now I need to specify a few more things:
+
+-I am going to trade during regular open hours, which is 9:30am-4pm EST
+-I need the bot to turn on the main loop during this window, and stop when it closes.
+
+
+
+************************************************************************
 6/6/25
 
 I realized the alpaca-py library is better than the main SDK. I redid

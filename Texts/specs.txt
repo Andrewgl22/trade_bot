@@ -2,7 +2,7 @@
 
 —day trade them to make money
 
-*--need to have an open websocket for real time data
+*need to have an open websocket for real time data
 
 —log every trade
 
@@ -16,3 +16,15 @@
 Trade Bot
 
 -host on Digital Ocean Droplet - $6/month max
+
+System Requirements:
+
+-stream real-time trading data and process
+
+-subscribe to 1-minute bars on alpaca. This means as you stream
+data you will get updated bars every minute. You can go more
+granular with 1s bars, but this is not necessary for now.
+
+-process and save 100 bars for each chosen stock so you 
+can use the past data to calculate indicators.
+
