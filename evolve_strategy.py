@@ -9,7 +9,6 @@ openai.api_key = OPENAI_API_KEY
 
 TRADE_LOG_FILE = 'trade_log.csv'
 
-
 def summarize_performance():
     if not os.path.isfile(TRADE_LOG_FILE):
         return "No trades recorded in the last week."

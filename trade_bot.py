@@ -1,5 +1,8 @@
 from alpaca_client import trading_client, stream
 
+from stock_picker import get_top_premarket_stocks
+from logging import log_trade
+
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.data.enums import DataFeed
@@ -19,6 +22,9 @@ selected_stocks = []
 
 entry_price = None
 
+price_data = {}
+positions = {}
+
 def get_est_now():
     return datetime.now(ZoneInfo("America/New_York"))
 
@@ -33,15 +39,6 @@ async def sleep_until_market_open():
     secs = seconds_until(9, 30)
     print(f"[INFO] Sleeping {secs/60:.1f} minutes until market opens...")
     await asyncio.sleep(secs)
-
-def select_top_5_daily_stocks():
-    # this is placeholder, you will need to build the code
-    # that searches and determines which stocks to buy for the day
-    global selected_stocks
-    selected_stocks = ['AAPL', 'TSLA', 'MSFT', 'NVDA', 'SPY']
-
-price_data = {}
-positions = {}
 
 def stream_symbols(symbols):
     # Clear any previously registered bar handlers
@@ -99,22 +96,29 @@ def stream_symbols(symbols):
                 # Insert indicator + trading logic here
                 print(f"[{symbol}] New bar: close = {bar.close}")
 
-async def run_trading_day():
-    await sleep_until_market_open()
+def place_order(symbol, price, df, side="buy"):
+    qty = calculate_trade_size(df, price)
+    if qty <= 0:
+        print(f"[WARN] Not enough cash to place {side} order for {symbol}")
+        return
 
-    select_top_5_daily_stocks()
+    trading_client.submit_order(MarketOrderRequest(
+        symbol=symbol,
+        qty=qty,
+        side=OrderSide.BUY if side == "buy" else OrderSide.SELL,
+        time_in_force=TimeInForce.GTC
+    ))
 
-    stream_symbols(selected_stocks)
+    print(f"{side.upper()} order placed for {qty} shares of {symbol} at ${price:.2f}")
+    log_trade(side.upper(), symbol, qty, price, datetime.utcnow(), "Signal met" if side == "buy" else "Exit triggered")
 
-    await stream.run()
-
-def log_trade(action, symbol, qty, price, timestamp, reason=""): 
-    file_exists = os.path.isfile(TRADE_LOG_FILE)
-    with open(TRADE_LOG_FILE, mode='a', newline='') as file:
-        writer = csv.writer(file)
-        if not file_exists:
-            writer.writerow(['action', 'symbol', 'qty', 'price', 'timestamp', 'reason'])
-        writer.writerow([action, symbol, qty, price, timestamp, reason])
+    # Update position state
+    if side == "buy":
+        positions[symbol]["in_position"] = True
+        positions[symbol]["entry_price"] = price
+    else:
+        positions[symbol]["in_position"] = False
+        positions[symbol]["entry_price"] = None
 
 def get_historical_data(symbol, limit=100):
     bars = trading_client.get_bars(symbol_or_symbols=symbol, timeframe=TIMEFRAME, limit=limit).df
@@ -129,7 +133,6 @@ def compute_indicators(df):
     df['vwap'] = (df['volume'] * (df['high'] + df['low'] + df['close']) / 3).cumsum() / df['volume'].cumsum()
     df['avg_volume'] = df['volume'].rolling(window=10).mean()
     return df
-
 
 def entry_signal(df):
     latest = df.iloc[-1]
@@ -165,45 +168,12 @@ def calculate_trade_size(df, price, base_cash=1000, max_cash=5000):
     allocated_cash = base_cash + confidence * (max_cash - base_cash)
     return int(allocated_cash / price)
 
-def place_order(symbol, price, df, side="buy"):
-    qty = calculate_trade_size(df, price)
-    if qty <= 0:
-        print(f"[WARN] Not enough cash to place {side} order for {symbol}")
-        return
+async def run_trading_day():
 
-    trading_client.submit_order(MarketOrderRequest(
-        symbol=symbol,
-        qty=qty,
-        side=OrderSide.BUY if side == "buy" else OrderSide.SELL,
-        time_in_force=TimeInForce.GTC
-    ))
+    await sleep_until_market_open()
 
-    print(f"{side.upper()} order placed for {qty} shares of {symbol} at ${price:.2f}")
-    log_trade(side.upper(), symbol, qty, price, datetime.utcnow(), "Signal met" if side == "buy" else "Exit triggered")
+    selected_stocks = get_top_premarket_stocks()
 
-    # Update position state
-    if side == "buy":
-        positions[symbol]["in_position"] = True
-        positions[symbol]["entry_price"] = price
-    else:
-        positions[symbol]["in_position"] = False
-        positions[symbol]["entry_price"] = None
+    stream_symbols(selected_stocks)
 
-def test_trade():
-        # Settings
-    SYMBOL = 'SPY'
-    TIMEFRAME = '5Min'
-    CASH_PER_TRADE = 1000
-    STOP_LOSS_PCT = -0.01
-    TAKE_PROFIT_PCT = 0.02
-    TRADE_LOG_FILE = 'trade_log.csv'
-    qty = 1
-    if qty > 0:
-        trading_client.submit_order(MarketOrderRequest(
-            symbol=SYMBOL,
-            qty=qty,
-            side=OrderSide.BUY,
-            time_in_force=TimeInForce.GTC
-        ))
-        # add the logging functionality back in once it's hooked up
-        # log_trade("BUY", SYMBOL, qty, price, datetime.utcnow(), "Signal met")
+    await stream.run()

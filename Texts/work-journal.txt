@@ -1,5 +1,22 @@
 
 ************************************************************************
+7/3/25
+
+Fixing things up. Decided that my current approach will be to pick 5 stocks each
+morning and trade those.
+
+Picking them based on pre-market movement. Didn't know that was a thing, but stocks
+with pre-market movement are more likely to have some volatility during the day.
+
+I told chat gpt I need small and mid-cap stocks, it initially suggested large cap
+which makes no sense given that I'm trying to exploit daily price movements, and large
+cap stocks are too sturdy.
+
+So anyway, it has me webscraping finviz, a stock site, for the largest movements,
+using beautifulsoup, a python library for webscraping. It looks for the stocks
+with greater than 5000 sales,
+
+************************************************************************
 6/20/25
 
 Ok, the infrsatructure is all set up, the pipeline works, and alpaca makes buy orders. Awesome.

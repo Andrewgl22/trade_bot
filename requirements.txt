@@ -4,3 +4,4 @@ ta
 python-dotenv
 requests
 alpaca-py
+beautifulsoup4
