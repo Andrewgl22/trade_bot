@@ -1,7 +1,7 @@
 from alpaca_client import trading_client, stream
 
 from stock_picker import get_top_premarket_stocks
-from logging import log_trade
+from log_trades import log_trade
 
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
