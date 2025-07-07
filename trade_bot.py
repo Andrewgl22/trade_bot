@@ -1,4 +1,4 @@
-from alpaca_client import trading_client, stream
+from alpaca_client import trading_client, stream, handle_bar, stream_symbols
 
 from stock_picker import get_top_premarket_stocks
 from log_trades import log_trade
@@ -39,62 +39,6 @@ async def sleep_until_market_open():
     secs = seconds_until(9, 30)
     print(f"[INFO] Sleeping {secs/60:.1f} minutes until market opens...")
     await asyncio.sleep(secs)
-
-def stream_symbols(symbols):
-    # Clear any previously registered bar handlers
-    stream._handlers["bar"] = {}
-
-    @stream.on_bar(*symbols)
-    async def handle_bar(bar):
-        symbol = bar.symbol
-
-        now = get_est_now().time()
-        if now >= time(16, 0):
-            print("[INFO] Market closed — stopping stream.")
-            await stream.stop()  # clean shutdown
-            return
-
-        # Initialize if not already
-        if symbol not in price_data:
-            price_data[symbol] = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
-            positions[symbol] = {"in_position": False, "entry_price": None}
-
-        # Update the rolling DataFrame
-        df = price_data[symbol]
-        new_row = {
-            "timestamp": bar.timestamp,
-            "open": bar.open,
-            "high": bar.high,
-            "low": bar.low,
-            "close": bar.close,
-            "volume": bar.volume
-        }
-        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-        if len(df) > 100:
-            df = df.iloc[-100:]
-        price_data[symbol] = df
-
-        # After updating price_data
-        df = compute_indicators(df)
-        price_data[symbol] = df  # update with new indicators
-
-        if entry_signal(df) and not positions[symbol]["in_position"]:
-            print(f"[TRADE] Entry signal triggered for {symbol} — buying at {bar.close}")
-            # place_order(symbol, bar.close) <-- modify this function to accept symbol
-            positions[symbol]["in_position"] = True
-            positions[symbol]["entry_price"] = bar.close
-
-        elif positions[symbol]["in_position"]:
-            entry = positions[symbol]["entry_price"]
-            change = (bar.close - entry) / entry
-            if change <= -0.01 or change >= 0.02:
-                print(f"[TRADE] Exiting position on {symbol} at {bar.close} with P/L {change:.2%}")
-                # place_order(symbol, bar.close, side="sell")
-                positions[symbol]["in_position"] = False
-                positions[symbol]["entry_price"] = None
-
-                # Insert indicator + trading logic here
-                print(f"[{symbol}] New bar: close = {bar.close}")
 
 def place_order(symbol, price, df, side="buy"):
     qty = calculate_trade_size(df, price)
@@ -174,6 +118,6 @@ async def run_trading_day():
 
     selected_stocks = get_top_premarket_stocks()
 
-    stream_symbols(selected_stocks)
+    await stream_symbols(selected_stocks)
 
     await stream.run()
