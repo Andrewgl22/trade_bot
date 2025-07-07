@@ -36,8 +36,15 @@ def seconds_until(hour, minute):
     return (target - now).total_seconds()
 
 async def sleep_until_market_open():
-    secs = seconds_until(9, 30)
-    print(f"[INFO] Sleeping {secs/60:.1f} minutes until market opens...")
+    now = get_est_now()
+    market_open = now.replace(hour=9, minute=30, second=0, microsecond=0)
+
+    if now >= market_open:
+        print("[INFO] Market is already open — skipping sleep.", flush=True)
+        return
+
+    secs = (market_open - now).total_seconds()
+    print(f"[INFO] Sleeping {secs/60:.1f} minutes until market opens...", flush=True)
     await asyncio.sleep(secs)
 
 def place_order(symbol, price, df, side="buy"):
