@@ -113,11 +113,20 @@ def calculate_trade_size(df, price, base_cash=1000, max_cash=5000):
     return int(allocated_cash / price)
 
 async def run_trading_day():
+    print("[BOOT] Trading day started", flush=True)
 
     await sleep_until_market_open()
 
+    print("[INFO] Market is open! Selecting top premarket stocks...", flush=True)
+
     selected_stocks = get_top_premarket_stocks()
 
+    # Log today's date and selected symbols
+    today = datetime.now().strftime("%Y-%m-%d")
+    print(f"[INFO] Symbols picked for {today}: {', '.join(selected_stocks)}", flush=True)
+
     await stream_symbols(selected_stocks)
+
+    print("[INFO] Stream initialized — listening for live bars...", flush=True)
 
     await stream.run()
