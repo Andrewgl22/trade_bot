@@ -136,4 +136,4 @@ async def run_trading_day():
 
     print("[INFO] Stream initialized — listening for live bars...", flush=True)
 
-    await stream.run()
+    await stream._run_forever()
