@@ -57,4 +57,4 @@ async def handle_bar(bar):
             positions[symbol]["entry_price"] = None
 
 async def stream_symbols(symbols):
-    await stream.subscribe_bars(handler=handle_bar, symbols=symbols)
+    await stream.subscribe_bars(handle_bar, *symbols)
