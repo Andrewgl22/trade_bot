@@ -1,4 +1,4 @@
-from alpaca_client import trading_client, stream, stream_symbols
+from alpaca_client import trading_client, stream
 
 from stock_picker import get_top_premarket_stocks
 from log_trades import log_trade
@@ -153,6 +153,9 @@ async def handle_bar(bar):
             print(f"[TRADE] Exiting position on {symbol} at {bar.close} with P/L {change:.2%}")
             positions[symbol]["in_position"] = False
             positions[symbol]["entry_price"] = None
+
+async def stream_symbols(symbols):
+    await stream.subscribe_bars(handle_bar, *symbols)
 
 async def run_trading_day():
     print("[BOOT] Trading day started", flush=True)

@@ -1,7 +1,6 @@
 from alpaca.trading.client import TradingClient
 from alpaca.data.live import StockDataStream
 from alpaca.data.enums import DataFeed
-from trade_bot import handle_bar
 import os
 
 API_KEY = os.getenv("ALPACA_PAPER_ACCOUNT_KEY_ID")
@@ -14,5 +13,3 @@ stream = StockDataStream(API_KEY, API_SECRET, feed=DataFeed.IEX)
 # SIP only available on premium accounts, IEX good for testing,
 # upgrade to SIP once you go live.
 
-async def stream_symbols(symbols):
-    await stream.subscribe_bars(handle_bar, *symbols)
