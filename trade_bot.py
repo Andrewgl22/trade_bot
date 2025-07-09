@@ -155,7 +155,7 @@ async def handle_bar(bar):
             positions[symbol]["entry_price"] = None
 
 async def stream_symbols(symbols):
-    await stream.subscribe_bars(handle_bar, *symbols)
+    stream.subscribe_bars(handle_bar, *symbols)
 
 async def run_trading_day():
     print("[BOOT] Trading day started", flush=True)
