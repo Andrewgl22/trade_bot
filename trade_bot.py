@@ -1,4 +1,4 @@
-from alpaca_client import trading_client, stream, handle_bar, stream_symbols
+from alpaca_client import trading_client, stream, stream_symbols
 
 from stock_picker import get_top_premarket_stocks
 from log_trades import log_trade

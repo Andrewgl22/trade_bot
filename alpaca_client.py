@@ -1,7 +1,7 @@
 from alpaca.trading.client import TradingClient
 from alpaca.data.live import StockDataStream
 from alpaca.data.enums import DataFeed
-from trade_bot import get_est_now, handle_bar
+from trade_bot import handle_bar
 import os
 
 API_KEY = os.getenv("ALPACA_PAPER_ACCOUNT_KEY_ID")
