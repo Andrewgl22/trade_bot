@@ -16,6 +16,9 @@ import ta
 
 from datetime import datetime, time, timedelta
 from zoneinfo import ZoneInfo
+
+from utils import get_est_now
+
 import asyncio
 
 selected_stocks = []
@@ -23,16 +26,6 @@ selected_stocks = []
 entry_price = None
 price_data = {}
 positions = {}
-
-def get_est_now():
-    return datetime.now(ZoneInfo("America/New_York"))
-
-def seconds_until(hour, minute):
-    now = get_est_now()
-    target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    if now.time() > time(hour, minute):
-        target += timedelta(days=1)
-    return (target - now).total_seconds()
 
 async def sleep_until_market_open():
     now = get_est_now()
