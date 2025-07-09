@@ -78,6 +78,9 @@ def compute_indicators(df):
     return df
 
 def entry_signal(df):
+    if len(df) < 2:
+        return False
+    
     latest = df.iloc[-1]
     prev = df.iloc[-2]
     conditions = [
@@ -114,45 +117,56 @@ def calculate_trade_size(df, price, base_cash=1000, max_cash=5000):
 async def handle_bar(bar):
     symbol = bar.symbol
 
-    now = get_est_now().time()
-    if now >= time(16, 0):
-        print("[INFO] Market closed — stopping stream.")
-        await stream.stop()
-        return
+    try:
+        now = get_est_now().time()
+        if now >= time(16, 0):
+            print("[INFO] Market closed — stopping stream.")
+            await stream.stop()
+            return
 
-    if symbol not in price_data:
-        price_data[symbol] = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
-        positions[symbol] = {"in_position": False, "entry_price": None}
+        if symbol not in price_data:
+            price_data[symbol] = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
+            positions[symbol] = {"in_position": False, "entry_price": None}
 
-    df = price_data[symbol]
-    new_row = {
-        "timestamp": bar.timestamp,
-        "open": bar.open,
-        "high": bar.high,
-        "low": bar.low,
-        "close": bar.close,
-        "volume": bar.volume
-    }
-    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
-    if len(df) > 100:
-        df = df.iloc[-100:]
-    price_data[symbol] = df
+        df = price_data[symbol]
+        new_row = {
+            "timestamp": bar.timestamp,
+            "open": bar.open,
+            "high": bar.high,
+            "low": bar.low,
+            "close": bar.close,
+            "volume": bar.volume
+        }
 
-    df = compute_indicators(df)
-    price_data[symbol] = df
+        # ✅ Suppress FutureWarning and preserve dtype consistency
+        new_df = pd.DataFrame([new_row])
+        if df.empty or df.isna().all().all():
+            df = new_df
+        else:
+            df = pd.concat([df, new_df], ignore_index=True)
 
-    if entry_signal(df) and not positions[symbol]["in_position"]:
-        print(f"[TRADE] Entry signal triggered for {symbol} — buying at {bar.close}")
-        positions[symbol]["in_position"] = True
-        positions[symbol]["entry_price"] = bar.close
+        if len(df) > 100:
+            df = df.iloc[-100:]
+        price_data[symbol] = df
 
-    elif positions[symbol]["in_position"]:
-        entry = positions[symbol]["entry_price"]
-        change = (bar.close - entry) / entry
-        if change <= -0.01 or change >= 0.02:
-            print(f"[TRADE] Exiting position on {symbol} at {bar.close} with P/L {change:.2%}")
-            positions[symbol]["in_position"] = False
-            positions[symbol]["entry_price"] = None
+        df = compute_indicators(df)
+        price_data[symbol] = df
+
+        if entry_signal(df) and not positions[symbol]["in_position"]:
+            print(f"[TRADE] Entry signal triggered for {symbol} — buying at {bar.close}")
+            positions[symbol]["in_position"] = True
+            positions[symbol]["entry_price"] = bar.close
+
+        elif positions[symbol]["in_position"]:
+            entry = positions[symbol]["entry_price"]
+            change = (bar.close - entry) / entry
+            if change <= -0.01 or change >= 0.02:
+                print(f"[TRADE] Exiting position on {symbol} at {bar.close} with P/L {change:.2%}")
+                positions[symbol]["in_position"] = False
+                positions[symbol]["entry_price"] = None
+
+    except Exception as e:
+        print(f"[ERROR] Exception in handle_bar for {symbol}: {e}", flush=True)
 
 async def stream_symbols(symbols):
     stream.subscribe_bars(handle_bar, *symbols)
