@@ -44,7 +44,8 @@ def place_order(symbol, price, df, side="buy"):
     if qty <= 0:
         print(f"[WARN] Not enough cash to place {side} order for {symbol}")
         return
-
+    
+    print(f"[ORDER] Attempting to place {side.upper()} order for {symbol} at {price:.2f}", flush=True)
     trading_client.submit_order(MarketOrderRequest(
         symbol=symbol,
         qty=qty,
@@ -138,6 +139,8 @@ async def handle_bar(bar):
             "volume": bar.volume
         }
 
+        print(f"[BAR] {symbol} @ {bar.timestamp} | Close: {bar.close:.2f}, Volume: {bar.volume}", flush=True)
+
         # ✅ Suppress FutureWarning and preserve dtype consistency
         new_df = pd.DataFrame([new_row])
         if df.empty or df.isna().all().all():
@@ -150,6 +153,14 @@ async def handle_bar(bar):
         price_data[symbol] = df
 
         df = compute_indicators(df)
+
+        if len(df) >= 2:
+            latest = df.iloc[-1]
+            prev = df.iloc[-2]
+            print(f"[DEBUG] {symbol} indicators — MACD: {latest['macd_hist']:.4f}, RSI: {latest['rsi']:.2f}, "
+                f"EMA9: {latest['ema9']:.2f}, EMA21: {latest['ema21']:.2f}, VWAP: {latest['vwap']:.2f}, "
+                f"Vol: {latest['volume']:.0f}, AvgVol: {latest['avg_volume']:.0f}", flush=True)
+
         price_data[symbol] = df
 
         if entry_signal(df) and not positions[symbol]["in_position"]:
@@ -170,6 +181,7 @@ async def handle_bar(bar):
 
 async def stream_symbols(symbols):
     stream.subscribe_bars(handle_bar, *symbols)
+    print(f"[STREAM] Subscribed to symbols: {', '.join(symbols)}", flush=True)
 
 async def run_trading_day():
     print("[BOOT] Trading day started", flush=True)
