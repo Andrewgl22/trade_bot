@@ -125,10 +125,12 @@ async def handle_bar(bar):
             await stream.stop()
             return
 
+        # Initialize data if not already
         if symbol not in price_data:
             price_data[symbol] = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
             positions[symbol] = {"in_position": False, "entry_price": None}
 
+        # Update rolling price data
         df = price_data[symbol]
         new_row = {
             "timestamp": bar.timestamp,
@@ -139,45 +141,37 @@ async def handle_bar(bar):
             "volume": bar.volume
         }
 
-        print(f"[BAR] {symbol} @ {bar.timestamp} | Close: {bar.close:.2f}, Volume: {bar.volume}", flush=True)
-
-        # ✅ Suppress FutureWarning and preserve dtype consistency
         new_df = pd.DataFrame([new_row])
-        if df.empty or df.isna().all().all():
-            df = new_df
-        else:
-            df = pd.concat([df, new_df], ignore_index=True)
-
+        df = pd.concat([df, new_df], ignore_index=True)
         if len(df) > 100:
             df = df.iloc[-100:]
         price_data[symbol] = df
 
+        # Compute indicators
         df = compute_indicators(df)
 
         if len(df) >= 2:
             latest = df.iloc[-1]
-            prev = df.iloc[-2]
             print(f"[DEBUG] {symbol} indicators — MACD: {latest['macd_hist']:.4f}, RSI: {latest['rsi']:.2f}, "
-                f"EMA9: {latest['ema9']:.2f}, EMA21: {latest['ema21']:.2f}, VWAP: {latest['vwap']:.2f}, "
-                f"Vol: {latest['volume']:.0f}, AvgVol: {latest['avg_volume']:.0f}", flush=True)
+                  f"EMA9: {latest['ema9']:.2f}, EMA21: {latest['ema21']:.2f}, VWAP: {latest['vwap']:.2f}, "
+                  f"Vol: {latest['volume']:.0f}, AvgVol: {latest['avg_volume']:.0f}", flush=True)
 
-        price_data[symbol] = df
-
+        # ENTRY: Buy if signal is met and not already in a position
         if entry_signal(df) and not positions[symbol]["in_position"]:
             print(f"[TRADE] Entry signal triggered for {symbol} — buying at {bar.close}")
-            positions[symbol]["in_position"] = True
-            positions[symbol]["entry_price"] = bar.close
+            place_order(symbol, bar.close, df, side="buy")
 
+        # EXIT: Sell if in position and P/L hits threshold
         elif positions[symbol]["in_position"]:
-            entry = positions[symbol]["entry_price"]
-            change = (bar.close - entry) / entry
+            entry_price = positions[symbol]["entry_price"]
+            change = (bar.close - entry_price) / entry_price
             if change <= -0.01 or change >= 0.02:
-                print(f"[TRADE] Exiting position on {symbol} at {bar.close} with P/L {change:.2%}")
-                positions[symbol]["in_position"] = False
-                positions[symbol]["entry_price"] = None
+                print(f"[TRADE] Exit signal for {symbol} — selling at {bar.close} with P/L {change:.2%}")
+                place_order(symbol, bar.close, df, side="sell")
 
     except Exception as e:
         print(f"[ERROR] Exception in handle_bar for {symbol}: {e}", flush=True)
+
 
 async def stream_symbols(symbols):
     stream.subscribe_bars(handle_bar, *symbols)
