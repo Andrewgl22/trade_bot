@@ -93,7 +93,12 @@ def entry_signal(df):
     ]
     return sum(conditions) >= 4
 
-def calculate_trade_size(df, price, base_cash=1000, max_cash=5000):
+def calculate_trade_size(df, price, max_cash=5000):
+    # Fetch available cash and apply 20% buffer
+    account = trading_client.get_account()
+    raw_cash = float(account.cash)
+    base_cash = min(raw_cash * 0.8, max_cash)  # clamp to max_cash
+
     # Count how many indicators are true
     latest = df.iloc[-1]
     prev = df.iloc[-2]
@@ -110,9 +115,8 @@ def calculate_trade_size(df, price, base_cash=1000, max_cash=5000):
     if latest['volume'] > 1.5 * latest['avg_volume']:
         score += 1
 
-    # Scale between base_cash and max_cash
-    confidence = score / 5  # result is between 0 and 1
-    allocated_cash = base_cash + confidence * (max_cash - base_cash)
+    confidence = score / 5
+    allocated_cash = base_cash * (0.5 + 0.5 * confidence)  # Use 50%-100% of base_cash
     return int(allocated_cash / price)
 
 async def handle_bar(bar):

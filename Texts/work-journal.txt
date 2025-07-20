@@ -1,4 +1,24 @@
 
+
+************************************************************************
+7/20/25
+
+checked logs, and it was throwing errors because there was insufficient purchasing power 
+to make the trades. Because the bot is only buying stocks and is not selling for 
+some reason, I don't have enough free cash to make the trades. This is also
+connected to the fact that I have a function which determines how much of a stock
+to buy, but it doesn't check my account cash flow. If there's not enough cash,
+then it needs to not try to make such a big purchase order.
+
+I fixed the trade log file path, it was trying to go up an extra level, but
+the file is already root level. I don't understand all the path stuff,
+it's one of those things where I'm having to fix chat gpt's misunderstandings.
+
+Last thing to do today is make sure the trade size is checking the cash in account.
+Did that. the calculate_trade_size function will get base cash from the account,
+it will only use 80% of what's available, leaving 20% as a cash buffer in the account.
+There is an order cap of $5K/order.
+
 ************************************************************************
 7/4/25
 
