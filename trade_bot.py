@@ -56,13 +56,17 @@ def place_order(symbol, price, df, side="buy"):
     print(f"{side.upper()} order placed for {qty} shares of {symbol} at ${price:.2f}")
     log_trade(side.upper(), symbol, qty, price, datetime.utcnow(), "Signal met" if side == "buy" else "Exit triggered")
 
-    # Update position state
+    # Make sure the position record exists first
+    if symbol not in positions:
+        positions[symbol] = {"in_position": False, "entry_price": None}
+
     if side == "buy":
         positions[symbol]["in_position"] = True
         positions[symbol]["entry_price"] = price
     else:
         positions[symbol]["in_position"] = False
         positions[symbol]["entry_price"] = None
+
 
 def get_historical_data(symbol, limit=100):
     bars = trading_client.get_bars(symbol_or_symbols=symbol, timeframe=TIMEFRAME, limit=limit).df
@@ -124,15 +128,12 @@ async def handle_bar(bar):
 
     try:
         now = get_est_now().time()
-        if now >= time(16, 0):
-            print("[INFO] Market closed — stopping stream.")
-            await stream.stop()
-            return
 
-        # Initialize data if not already
+        # Initialize position and price data if not already
+        if symbol not in positions:
+            positions[symbol] = {"in_position": False, "entry_price": None}
         if symbol not in price_data:
             price_data[symbol] = pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
-            positions[symbol] = {"in_position": False, "entry_price": None}
 
         # Update rolling price data
         df = price_data[symbol]
@@ -144,7 +145,6 @@ async def handle_bar(bar):
             "close": bar.close,
             "volume": bar.volume
         }
-
         new_df = pd.DataFrame([new_row])
         df = pd.concat([df, new_df], ignore_index=True)
         if len(df) > 100:
@@ -154,6 +154,20 @@ async def handle_bar(bar):
         # Compute indicators
         df = compute_indicators(df)
 
+        # 🔻 Force-sell before market close (3:59 PM)
+        if time(15, 59) <= now < time(16, 0):
+            if positions[symbol]["in_position"]:
+                print(f"[CLOSEOUT] Forcing exit for {symbol} at {bar.close} before market close")
+                place_order(symbol, bar.close, df, side="sell")
+            return
+
+        # 🛑 Stop stream at or after 4:00 PM
+        if now >= time(16, 0):
+            print("[INFO] Market closed — stopping stream.")
+            await stream.stop()
+            return
+
+        # Print debug indicators
         if len(df) >= 2:
             latest = df.iloc[-1]
             print(f"[DEBUG] {symbol} indicators — MACD: {latest['macd_hist']:.4f}, RSI: {latest['rsi']:.2f}, "
