@@ -21,6 +21,8 @@ from utils import get_est_now
 
 import asyncio
 
+# change for permissions test
+
 selected_stocks = []
 
 entry_price = None

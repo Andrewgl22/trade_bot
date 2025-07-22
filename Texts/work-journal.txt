@@ -1,4 +1,13 @@
 
+************************************************************************
+7/22/25
+
+Buy and Sell are working! That's awesome. But, the logs were still not working,
+it's because the docker container is set to read only, so i can't write to it. That's
+good practice, what I can do to change that though, is create a volume, just a folder
+on the droplet, and give the container access to it, so logs will store there.
+It's a folder called trade_logs at the root on the droplet, and the yaml file was
+updated to use that and give it write permissions.
 
 ************************************************************************
 7/20/25
