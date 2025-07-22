@@ -52,7 +52,10 @@ jobs:
 
             docker run -d --restart always --name trading-bot \
               --read-only --cap-drop ALL --user botuser \
+              -v ~/trade_logs:/logs:rw \
               -e \"ALPACA_PAPER_ACCOUNT_KEY_ID=\$ALPACA_PAPER_ACCOUNT_KEY_ID\" \
               -e \"ALPACA_PAPER_ACCOUNT_SECRET_KEY=\$ALPACA_PAPER_ACCOUNT_SECRET_KEY\" \
               trading-bot
           "
+
+

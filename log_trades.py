@@ -1,8 +1,9 @@
 import os
 import csv
 
-# Full path to trade_logs/trade_log.csv
-TRADE_LOG_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "trade_logs", "trade_log.csv"))
+LOG_DIR = "/logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+TRADE_LOG_FILE = os.path.join(LOG_DIR, "trade_log.csv")
 
 def log_trade(action, symbol, qty, price, timestamp, reason=""):
     print(f"[DEBUG] log_trade called with: {action}, {symbol}, {qty}, {price}, {timestamp}, {reason}", flush=True)
