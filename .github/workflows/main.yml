@@ -18,11 +18,11 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan 137.184.190.88 >> ~/.ssh/known_hosts
+          ssh-keyscan 167.172.194.125 >> ~/.ssh/known_hosts
 
       - name: Deploy code via rsync
         run: |
-          rsync -avz --delete ./ root@137.184.190.88:/root/trading-bot \
+          rsync -avz --delete ./ root@167.172.194.125:/root/trading-bot \
             --exclude='.git' \
             --exclude='venv' \
             --exclude='.github'
@@ -32,7 +32,7 @@ jobs:
           ALPACA_PAPER_ACCOUNT_KEY_ID: ${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }}
           ALPACA_PAPER_ACCOUNT_SECRET_KEY: ${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }}
         run: |
-          ssh root@137.184.190.88 "
+          ssh root@167.172.194.125 "
             export ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID
             export ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY
 
