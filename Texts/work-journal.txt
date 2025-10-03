@@ -1,5 +1,20 @@
 
 ************************************************************************
+10/2/25
+
+Wow ok, it's been 3 months since I worked on this. I was starting to add a postgres
+db, but realized I had set up the droplet with an unstable ubuntu version.
+I created a new droplet with the LTS (Long Term Support). The other ones
+that are not LTS are often OS versions that are for patches or bug fixes,
+and they are not supported after like 6-9 months or something, so they 
+become incompatible? 
+
+Anyway, I did that, and then realized I needed to update the IP address
+that my github action was pointing to. A new droplet will be given a new IP
+address. I checked if it was an issue with the ssh keys, but that was all ok.
+Once I pointed the github yaml to the new IP, that step worked fine.
+
+************************************************************************
 7/22/25
 
 Buy and Sell are working! That's awesome. But, the logs were still not working,
