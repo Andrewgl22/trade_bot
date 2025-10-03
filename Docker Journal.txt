@@ -1,0 +1,68 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2757
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 Docker Journal\
+\
+\
+\
+******************************************************************************************************************\
+\
+6/20/25\
+\
+So, by default when you run a docker container, it stays on your system even if you start running a new one.\
+\
+This command will list stats on how many containers you have running, how much space it takes up etc:\
+\
+
+\f1\b Docker system df
+\f0\b0 \
+\
+And this command will remove any containers that are not doing anything and free up space:\
+\
+
+\f1\b Docker system prune -af \'97volumes\
+
+\f0\b0 \
+Despite removing old images/containers, I was still having issues, it kept saying there wasn\'92t enough space.\
+Turns out it was talking about another area of RAM specific to runtime that fills up. You can see how much is used with this command:\
+\
+
+\f1\b df -h /run\
+\
+
+\f0\b0 I ran these two commands to clear out metadata files:\
+\
+
+\f1\b rm -rf /run/docker/runtime-runc/*\
+rm -rf /var/run/docker/*/containers/*\
+\
+
+\f0\b0 Then to complete it I ran:\
+\
+
+\f1\b Reboot\
+\
+
+\f0\b0 And then when I run df -h /run again, it is mostly cleared out.  
+\f1\b /run 
+\f0\b0 is a temporary in-memory filesystem used for runtime state.\
+\
+I added these commands to my GitHub action so that when each new build is run, the old ones are for sure cleared out. This is not generally necessary in particular you shouldn\'92t have to worry about the /run folder, but since it\'92s building new containers as part of a ci cd pipeline, I have to do it.\
+\
+Common Commands:\
+\
+
+\f1\b Docker ps 
+\f0\b0 (process, this will show all running processes)\
+\
+
+\f1\b Docker logs trading-bot 
+\f0\b0 this shows all the output from the running container. I ran this command and was able to see what was breaking my code, it was an import statement for a package called ta which I had not included in my requirements.txt file. (Trading-bot is the name of the container in this case I think)\
+\
+\
+\
+}
