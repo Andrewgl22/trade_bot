@@ -31,19 +31,34 @@ jobs:
         run: |
           ssh root@167.172.194.125 "cd /root/trading-bot && docker run --rm --network host -e DATABASE_URL='${{ secrets.DATABASE_URL }}' trading-bot alembic upgrade head"
 
-      - name: Run app container
+      - name: Run secure Docker container
+        env:
+          ALPACA_PAPER_ACCOUNT_KEY_ID: ${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }}
+          ALPACA_PAPER_ACCOUNT_SECRET_KEY: ${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          ssh root@167.172.194.125 "\
-            cd /root/trading-bot && \
-            docker stop trading-bot || true && \
-            docker rm trading-bot || true && \
-            docker system prune -af && \
-            rm -rf /run/docker/runtime-runc/* && \
+          ssh root@167.172.194.125 "
+            export ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID
+            export ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY
+            export DATABASE_URL=$DATABASE_URL
+
+            cd /root/trading-bot
+
+            docker stop trading-bot || true
+            docker rm trading-bot || true
+
+            # prune only containers/networks, not images
+            docker container prune -f
+            docker network prune -f
+
+            echo \"Running: docker run -d --name trading-bot ... trading-bot\"
+
             docker run -d --restart always --name trading-bot \
               --network host \
               --read-only --cap-drop ALL --user botuser \
               -v ~/trade_logs:/logs:rw \
-              -e ALPACA_PAPER_ACCOUNT_KEY_ID='${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }}' \
-              -e ALPACA_PAPER_ACCOUNT_SECRET_KEY='${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }}' \
-              -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
-              trading-bot"
+              -e \"ALPACA_PAPER_ACCOUNT_KEY_ID=\$ALPACA_PAPER_ACCOUNT_KEY_ID\" \
+              -e \"ALPACA_PAPER_ACCOUNT_SECRET_KEY=\$ALPACA_PAPER_ACCOUNT_SECRET_KEY\" \
+              -e \"DATABASE_URL=\$DATABASE_URL\" \
+              trading-bot
+          "
