@@ -25,37 +25,25 @@ jobs:
 
       - name: Build Docker image on droplet
         run: |
-          ssh root@167.172.194.125 "
-            cd /root/trading-bot
-            docker build -t trading-bot .
-          "
+          ssh root@167.172.194.125 "cd /root/trading-bot && docker build -t trading-bot ."
 
       - name: Run Alembic migrations (ephemeral container)
         run: |
-          ssh root@167.172.194.125 "
-            cd /root/trading-bot
-            docker run --rm \
-              --network host \
-              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-              trading-bot \
-              alembic upgrade head
-          "
+          ssh root@167.172.194.125 "cd /root/trading-bot && docker run --rm --network host -e DATABASE_URL='${{ secrets.DATABASE_URL }}' trading-bot alembic upgrade head"
 
       - name: Run app container
         run: |
-          ssh root@167.172.194.125 "
-            cd /root/trading-bot
-            docker stop trading-bot || true
-            docker rm trading-bot || true
-            docker system prune -af
-            rm -rf /run/docker/runtime-runc/*
-
+          ssh root@167.172.194.125 "\
+            cd /root/trading-bot && \
+            docker stop trading-bot || true && \
+            docker rm trading-bot || true && \
+            docker system prune -af && \
+            rm -rf /run/docker/runtime-runc/* && \
             docker run -d --restart always --name trading-bot \
               --network host \
               --read-only --cap-drop ALL --user botuser \
               -v ~/trade_logs:/logs:rw \
-              -e ALPACA_PAPER_ACCOUNT_KEY_ID=${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }} \
-              -e ALPACA_PAPER_ACCOUNT_SECRET_KEY=${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }} \
-              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
-              trading-bot
-          "
+              -e ALPACA_PAPER_ACCOUNT_KEY_ID='${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }}' \
+              -e ALPACA_PAPER_ACCOUNT_SECRET_KEY='${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }}' \
+              -e DATABASE_URL='${{ secrets.DATABASE_URL }}' \
+              trading-bot"
