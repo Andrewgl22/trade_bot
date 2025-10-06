@@ -76,6 +76,7 @@ jobs:
             echo \"Running: docker run -d --name trading-bot ... trading-bot\"
 
             docker run -d --restart always --name trading-bot \
+              --network host \
               --read-only --cap-drop ALL --user botuser \
               -v ~/trade_logs:/logs:rw \
               -e \"ALPACA_PAPER_ACCOUNT_KEY_ID=\$ALPACA_PAPER_ACCOUNT_KEY_ID\" \
