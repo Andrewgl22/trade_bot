@@ -34,8 +34,13 @@ jobs:
           ssh root@167.172.194.125 "
             cd /root/trading-bot
             export DATABASE_URL=$DATABASE_URL
-            alembic upgrade head
+            docker run --rm \
+              -e DATABASE_URL=\$DATABASE_URL \
+              -v /root/trading-bot:/app \
+              trading-bot \
+              alembic upgrade head
           "
+
 
       - name: Run secure Docker container
         env:
