@@ -36,7 +36,7 @@ jobs:
             export DATABASE_URL=$DATABASE_URL
             alembic upgrade head
           "
-          
+
       - name: Run secure Docker container
         env:
           ALPACA_PAPER_ACCOUNT_KEY_ID: ${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }}
