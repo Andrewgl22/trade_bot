@@ -30,7 +30,7 @@ jobs:
             --exclude='venv' \
             --exclude='.github'
 
-      # 4. Build Docker image on the droplet (must happen before migrations)
+      # 4. Build Docker image on the droplet
       - name: Build Docker image on droplet
         run: |
           ssh root@167.172.194.125 "
@@ -45,12 +45,10 @@ jobs:
         run: |
           ssh root@167.172.194.125 "
             cd /root/trading-bot
-            export DATABASE_URL=$DATABASE_URL
             docker run --rm \
               -e DATABASE_URL=\$DATABASE_URL \
-              -v /root/trading-bot:/app \
               trading-bot \
-              python -m alembic upgrade head
+              alembic upgrade head
           "
 
       # 6. Run your app container
