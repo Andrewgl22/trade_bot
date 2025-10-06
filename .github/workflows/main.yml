@@ -2,19 +2,15 @@ name: Deploy to Droplet
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Setup SSH so GitHub Actions can connect to your droplet
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -22,15 +18,11 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 167.172.194.125 >> ~/.ssh/known_hosts
 
-      # 3. Rsync project files to the droplet
-      - name: Deploy code via rsync
+      - name: Rsync code to droplet
         run: |
           rsync -avz --delete ./ root@167.172.194.125:/root/trading-bot \
-            --exclude='.git' \
-            --exclude='venv' \
-            --exclude='.github'
+            --exclude='.git' --exclude='venv' --exclude='.github'
 
-      # 4. Build Docker image on the droplet
       - name: Build Docker image on droplet
         run: |
           ssh root@167.172.194.125 "
@@ -38,47 +30,32 @@ jobs:
             docker build -t trading-bot .
           "
 
-      # 5. Run Alembic migrations inside the Docker image
-      - name: Run Alembic migrations inside Docker
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Run Alembic migrations (ephemeral container)
         run: |
           ssh root@167.172.194.125 "
             cd /root/trading-bot
             docker run --rm \
-              -e DATABASE_URL=\$DATABASE_URL \
+              --network host \
+              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
               trading-bot \
               alembic upgrade head
           "
 
-      # 6. Run your app container
-      - name: Run secure Docker container
-        env:
-          ALPACA_PAPER_ACCOUNT_KEY_ID: ${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }}
-          ALPACA_PAPER_ACCOUNT_SECRET_KEY: ${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Run app container
         run: |
           ssh root@167.172.194.125 "
-            export ALPACA_PAPER_ACCOUNT_KEY_ID=$ALPACA_PAPER_ACCOUNT_KEY_ID
-            export ALPACA_PAPER_ACCOUNT_SECRET_KEY=$ALPACA_PAPER_ACCOUNT_SECRET_KEY
-            export DATABASE_URL=$DATABASE_URL
-
             cd /root/trading-bot
-
             docker stop trading-bot || true
             docker rm trading-bot || true
-
             docker system prune -af
             rm -rf /run/docker/runtime-runc/*
-
-            echo \"Running: docker run -d --name trading-bot ... trading-bot\"
 
             docker run -d --restart always --name trading-bot \
               --network host \
               --read-only --cap-drop ALL --user botuser \
               -v ~/trade_logs:/logs:rw \
-              -e \"ALPACA_PAPER_ACCOUNT_KEY_ID=\$ALPACA_PAPER_ACCOUNT_KEY_ID\" \
-              -e \"ALPACA_PAPER_ACCOUNT_SECRET_KEY=\$ALPACA_PAPER_ACCOUNT_SECRET_KEY\" \
-              -e \"DATABASE_URL=\$DATABASE_URL\" \
+              -e ALPACA_PAPER_ACCOUNT_KEY_ID=${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }} \
+              -e ALPACA_PAPER_ACCOUNT_SECRET_KEY=${{ secrets.ALPACA_PAPER_ACCOUNT_SECRET_KEY }} \
+              -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
               trading-bot
           "
