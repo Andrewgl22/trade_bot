@@ -7,3 +7,4 @@ alpaca-py
 beautifulsoup4
 sqlalchemy
 psycopg2-binary
+alembic

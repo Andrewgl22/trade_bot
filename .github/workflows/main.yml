@@ -27,6 +27,16 @@ jobs:
             --exclude='venv' \
             --exclude='.github'
 
+      - name: Run Alembic migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          ssh root@137.184.190.88 "
+            cd /root/trading-bot
+            export DATABASE_URL=$DATABASE_URL
+            alembic upgrade head
+          "
+
       - name: Run secure Docker container
         env:
           ALPACA_PAPER_ACCOUNT_KEY_ID: ${{ secrets.ALPACA_PAPER_ACCOUNT_KEY_ID }}
