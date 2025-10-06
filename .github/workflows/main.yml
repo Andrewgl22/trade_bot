@@ -31,7 +31,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          ssh root@137.184.190.88 "
+          ssh root@167.172.194.125 "
             cd /root/trading-bot
             export DATABASE_URL=$DATABASE_URL
             alembic upgrade head
