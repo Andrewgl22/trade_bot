@@ -2,7 +2,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "postgresql://user:password@localhost:5432/trading"
+DATABASE_URL = "postgresql://local:local222@localhost:5432/trading"
 
 engine = create_engine(DATABASE_URL, echo=True)  # echo prints SQL logs
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
