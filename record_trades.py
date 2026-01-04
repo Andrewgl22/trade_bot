@@ -1,15 +1,18 @@
 import os
-import csv
+from sqlalcorm.database import engine, SessionLocal
+from sqlalcorm.models import Trade
 
-LOG_DIR = "/logs"
-os.makedirs(LOG_DIR, exist_ok=True)
-TRADE_LOG_FILE = os.path.join(LOG_DIR, "trade_log.csv")
-
-def log_trade(action, symbol, qty, price, timestamp, reason=""):
-    print(f"[DEBUG] log_trade called with: {action}, {symbol}, {qty}, {price}, {timestamp}, {reason}", flush=True)
-
+def record_trade(side, symbol, qty, price, reason=""):
+    print(f"[DEBUG] record_trade called with: {side}, {symbol}, {qty}, {price}, {reason}", flush=True)
     try:
-        # Ensure the trade_logs folder exists
+        with SessionLocal.begin() as session:
+            session.add(Trade(symbol,price,qty,side))
+      
+    except Exception as e:
+        print(f"[ERROR] Failed to log trade: {e}", flush=True)
+
+
+  # Ensure the trade_logs folder exists
         os.makedirs(os.path.dirname(TRADE_LOG_FILE), exist_ok=True)
 
         print(f"[DEBUG] Writing to log file at: {TRADE_LOG_FILE}")
@@ -21,8 +24,4 @@ def log_trade(action, symbol, qty, price, timestamp, reason=""):
                 writer.writerow(['action', 'symbol', 'qty', 'price', 'timestamp', 'reason'])
             writer.writerow([action, symbol, qty, price, timestamp, reason])
             print(f"[DEBUG] Trade successfully logged to {TRADE_LOG_FILE}", flush=True)
-
-    except Exception as e:
-        print(f"[ERROR] Failed to log trade: {e}", flush=True)
-
 

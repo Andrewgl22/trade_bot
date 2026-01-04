@@ -1,7 +1,7 @@
 from alpaca_client import trading_client, stream
 
 from stock_picker import get_top_premarket_stocks
-from log_trades import log_trade
+from record_trades import record_trade
 
 from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
@@ -56,7 +56,7 @@ def place_order(symbol, price, df, side="buy"):
     ))
 
     print(f"{side.upper()} order placed for {qty} shares of {symbol} at ${price:.2f}")
-    log_trade(side.upper(), symbol, qty, price, datetime.utcnow(), "Signal met" if side == "buy" else "Exit triggered")
+    record_trade(side.upper(), symbol, qty, price, datetime.utcnow(), "Signal met" if side == "buy" else "Exit triggered")
 
     # Make sure the position record exists first
     if symbol not in positions:
