@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import ta
 
-from datetime import datetime, time, timedelta
+from datetime import datetime, time, timezone, timedelta
 from zoneinfo import ZoneInfo
 
 from utils import get_est_now
@@ -56,7 +56,7 @@ def place_order(symbol, price, df, side="buy"):
     ))
 
     print(f"{side.upper()} order placed for {qty} shares of {symbol} at ${price:.2f}")
-    record_trade(side.upper(), symbol, qty, price, datetime.utcnow(), "Signal met" if side == "buy" else "Exit triggered")
+    record_trade(side.upper(), symbol, qty, price, datetime.now(timezone.utc), "Signal met" if side == "buy" else "Exit triggered")
 
     # Make sure the position record exists first
     if symbol not in positions:
