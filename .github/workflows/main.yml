@@ -56,7 +56,7 @@ jobs:
             docker run -d --restart always --name trading-bot \
               --network host \
               --read-only --cap-drop ALL --user botuser \
-              -v /root/trading-bot/trade_logs:/app/trade_logs \
+              -v /var/log/trading-bot:/app/trade_logs \
               -e \"ALPACA_PAPER_ACCOUNT_KEY_ID=\$ALPACA_PAPER_ACCOUNT_KEY_ID\" \
               -e \"ALPACA_PAPER_ACCOUNT_SECRET_KEY=\$ALPACA_PAPER_ACCOUNT_SECRET_KEY\" \
               -e \"DATABASE_URL=\$DATABASE_URL\" \
