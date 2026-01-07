@@ -44,20 +44,20 @@ async def sleep_until_market_open():
     market_open = now.replace(hour=9, minute=30, second=0, microsecond=0)
 
     if now >= market_open:
-        logger.info("[INFO] Market is already open — skipping sleep.")
+        logger.info("Market is already open — skipping sleep.")
         return
 
     secs = (market_open - now).total_seconds()
-    print(f"[INFO] Sleeping {secs/60:.1f} minutes until market opens...", flush=True)
+    logger.info("Sleeping %.1f minutes until market opens...", secs / 60)
     await asyncio.sleep(secs)
 
 def place_order(symbol, price, df, side="buy"):
     qty = calculate_trade_size(df, price)
     if qty <= 0:
-        print(f"[WARN] Not enough cash to place {side} order for {symbol}")
+        logger.info("Not enough cash to place %s order for %s", side, symbol)
         return
     
-    print(f"[ORDER] Attempting to place {side.upper()} order for {symbol} at {price:.2f}", flush=True)
+    logger.info("Attempting to place %s order for %s at %.2f", side.upper(), symbol, price * 100)
     trading_client.submit_order(MarketOrderRequest(
         symbol=symbol,
         qty=qty,
@@ -65,7 +65,7 @@ def place_order(symbol, price, df, side="buy"):
         time_in_force=TimeInForce.GTC
     ))
 
-    print(f"{side.upper()} order placed for {qty} shares of {symbol} at ${price:.2f}")
+    logger.info("%s order placed for %d shares of %s at $%.2f", side.upper(), qty, symbol, price * 100)
     record_trade(side.upper(), symbol, qty, price, datetime.now(timezone.utc), "Signal met" if side == "buy" else "Exit triggered")
 
     # Make sure the position record exists first
@@ -169,26 +169,35 @@ async def handle_bar(bar):
         # 🔻 Force-sell before market close (3:59 PM)
         if time(15, 59) <= now < time(16, 0):
             if positions[symbol]["in_position"]:
-                print(f"[CLOSEOUT] Forcing exit for {symbol} at {bar.close} before market close")
+                logger.info("Forcing exit for %s at %.2f before market close", symbol, bar.close)
                 place_order(symbol, bar.close, df, side="sell")
             return
 
         # 🛑 Stop stream at or after 4:00 PM
         if now >= time(16, 0):
-            print("[INFO] Market closed — stopping stream.")
+            logger.info("Market closed — stopping stream.")
             await stream.stop()
             return
 
         # Print debug indicators
         if len(df) >= 2:
             latest = df.iloc[-1]
-            print(f"[DEBUG] {symbol} indicators — MACD: {latest['macd_hist']:.4f}, RSI: {latest['rsi']:.2f}, "
-                  f"EMA9: {latest['ema9']:.2f}, EMA21: {latest['ema21']:.2f}, VWAP: {latest['vwap']:.2f}, "
-                  f"Vol: {latest['volume']:.0f}, AvgVol: {latest['avg_volume']:.0f}", flush=True)
+            logger.debug(
+                "%s indicators — MACD: %.4f, RSI: %.2f, EMA9: %.2f, EMA21: %.2f, "
+                "VWAP: %.2f, Vol: %.0f, AvgVol: %.0f",
+                symbol,
+                latest["macd_hist"],
+                latest["rsi"],
+                latest["ema9"],
+                latest["ema21"],
+                latest["vwap"],
+                latest["volume"],
+                latest["avg_volume"],
+            )
 
         # ENTRY: Buy if signal is met and not already in a position
         if entry_signal(df) and not positions[symbol]["in_position"]:
-            print(f"[TRADE] Entry signal triggered for {symbol} — buying at {bar.close}")
+            logger.info("Entry signal triggered for %s — buying at %.2f", symbol, bar.close)
             place_order(symbol, bar.close, df, side="buy")
 
         # EXIT: Sell if in position and P/L hits threshold
@@ -196,33 +205,33 @@ async def handle_bar(bar):
             entry_price = positions[symbol]["entry_price"]
             change = (bar.close - entry_price) / entry_price
             if change <= -0.01 or change >= 0.02:
-                print(f"[TRADE] Exit signal for {symbol} — selling at {bar.close} with P/L {change:.2%}")
+                logger.info("Exit signal for %s — selling at %.2f with P/L %.2f%%", symbol,bar.close, change * 100)
                 place_order(symbol, bar.close, df, side="sell")
 
     except Exception as e:
-        print(f"[ERROR] Exception in handle_bar for {symbol}: {e}", flush=True)
+        logger.exception("Exception in handle_bar for %s", symbol)
 
 
 async def stream_symbols(symbols):
     stream.subscribe_bars(handle_bar, *symbols)
-    print(f"[STREAM] Subscribed to symbols: {', '.join(symbols)}", flush=True)
+    logger.info("Subscribed to symbols: %s", ", ".join(symbols))
 
 async def run_trading_day():
-    print("[BOOT] Trading day started", flush=True)
+    logger.info("Trading day started")
 
     await sleep_until_market_open()
 
-    print("[INFO] Market is open! Selecting top premarket stocks...", flush=True)
+    logger.info("Market is open! Selecting top premarket stocks...")
 
     selected_stocks = get_top_premarket_stocks()
 
     # Log today's date and selected symbols
     today = datetime.now().strftime("%Y-%m-%d")
-    print(f"[INFO] Symbols picked for {today}: {', '.join(selected_stocks)}", flush=True)
+    logger.info(f"[INFO] Symbols picked for {today}: {', '.join(selected_stocks)}")
 
     await stream_symbols(selected_stocks)
 
-    print("[INFO] Stream initialized — listening for live bars...", flush=True)
+    logger.info("[INFO] Stream initialized — listening for live bars...")
 
     await stream._run_forever()
 
