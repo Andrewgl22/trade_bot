@@ -30,6 +30,7 @@ entry_price = None
 price_data = {}
 positions = {}
 
+# change for re-deploy
 # Market opens 9:30amEST/6:30amPST
 async def sleep_until_market_open():
     now = get_est_now()
