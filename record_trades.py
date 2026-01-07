@@ -2,8 +2,10 @@ import os
 from sqlalcorm.database import engine, SessionLocal
 from sqlalcorm.models import Trade
 
-def record_trade(side, symbol, qty, price, strategy, executed_at, reason=""):
-    print(f"[DEBUG] record_trade called with: {side}, {symbol}, {qty}, {price}, {reason}", flush=True)
+import logging
+logger = logging.getLogger(__name__)
+
+def record_trade(side, symbol, qty, price, strategy, executed_at, reason=""):    
     try:
         with SessionLocal.begin() as session:
             trade = Trade(
@@ -14,6 +16,6 @@ def record_trade(side, symbol, qty, price, strategy, executed_at, reason=""):
                 strategy=strategy,
                 executed_at=executed_at)
             session.add(trade)
-            
+        logger.info("record_trade called with: {side}, {symbol}, {qty}, {price}, {reason}")
     except Exception as e:
-        print(f"[ERROR] Failed to log trade: {e}", flush=True)
+        logger.error("Failed to log trade: {e}")

@@ -21,6 +21,16 @@ from utils import get_est_now
 
 import asyncio
 
+import logging
+logger = logging.getLogger(__name__)
+
+# logger.info("Evaluating strategy for %s", symbol)
+# logger.debug("RSI=%s MACD=%s", rsi, macd)
+# logger.warning("No data for %s", symbol)
+# logger.error("Order failed", exc_info=True)
+
+
+
 # change for permissions test
 
 selected_stocks = []
@@ -34,7 +44,7 @@ async def sleep_until_market_open():
     market_open = now.replace(hour=9, minute=30, second=0, microsecond=0)
 
     if now >= market_open:
-        print("[INFO] Market is already open — skipping sleep.", flush=True)
+        logger.info("[INFO] Market is already open — skipping sleep.")
         return
 
     secs = (market_open - now).total_seconds()
