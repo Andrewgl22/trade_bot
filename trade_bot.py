@@ -24,21 +24,13 @@ import asyncio
 import logging
 logger = logging.getLogger(__name__)
 
-# logger.info("Evaluating strategy for %s", symbol)
-# logger.debug("RSI=%s MACD=%s", rsi, macd)
-# logger.warning("No data for %s", symbol)
-# logger.error("Order failed", exc_info=True)
-
-
-
-# change for permissions test
-
 selected_stocks = []
 
 entry_price = None
 price_data = {}
 positions = {}
 
+# Market opens 9:30amEST/6:30amPST
 async def sleep_until_market_open():
     now = get_est_now()
     market_open = now.replace(hour=9, minute=30, second=0, microsecond=0)
