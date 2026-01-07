@@ -220,7 +220,7 @@ async def run_trading_day():
 
     # Log today's date and selected symbols
     today = datetime.now().strftime("%Y-%m-%d")
-    logger.info(f"[INFO] Symbols picked for {today}: {', '.join(selected_stocks)}")
+    logger.info("Symbols picked for %s: %s", today, ", ".join(selected_stocks))
 
     await stream_symbols(selected_stocks)
 
