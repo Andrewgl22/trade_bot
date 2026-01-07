@@ -6,7 +6,7 @@ RUN_ID = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_DIR = os.path.join(BASE_DIR, "trade_logs")
-LOG_FILE = os.path.join(LOG_DIR, "tradebot.log")
+LOG_FILE = os.path.join(LOG_DIR, "trade_bot.log")
 
 os.makedirs(LOG_DIR, exist_ok=True)
 
