@@ -1,14 +1,14 @@
-from alpaca_client import trading_client, stream
+import os
+from alpaca_client import trading_client, data_client, stream
 
 from stock_picker import get_top_premarket_stocks
 from record_trades import record_trade
 
 from alpaca.trading.requests import MarketOrderRequest
+from alpaca.data.requests import StockBarsRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 from alpaca.data.enums import DataFeed
-
-import os
-import csv
+from alpaca.data.timeframe import TimeFrame
 
 import numpy as np
 import pandas as pd
@@ -25,12 +25,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 selected_stocks = []
-
-entry_price = None
 price_data = {}
 positions = {}
 
-# change for re-deploy
+entry_price = None
+
 # Market opens 9:30amEST/6:30amPST
 async def sleep_until_market_open():
     now = get_est_now()
@@ -43,6 +42,17 @@ async def sleep_until_market_open():
     secs = (market_open - now).total_seconds()
     logger.info("Sleeping %.1f minutes until market opens...", secs / 60)
     await asyncio.sleep(secs)
+
+async def stop_at_market_close():
+    est = get_est_now()
+    close_dt = est.replace(hour=16, minute=0, second=5, microsecond=0)
+    if est >= close_dt:
+        logger.info("Already past market close — stopping stream.")
+        await stream.stop()
+        return
+    await asyncio.sleep((close_dt - est).total_seconds())
+    logger.info("Closing Time: stopping stream.")
+    await stream.stop()
 
 def place_order(symbol, price, df, side="buy"):
     qty = calculate_trade_size(df, price)
@@ -71,11 +81,6 @@ def place_order(symbol, price, df, side="buy"):
     else:
         positions[symbol]["in_position"] = False
         positions[symbol]["entry_price"] = None
-
-
-def get_historical_data(symbol, limit=100):
-    bars = trading_client.get_bars(symbol_or_symbols=symbol, timeframe=TIMEFRAME, limit=limit).df
-    return bars[bars['symbol'] == symbol]
 
 def compute_indicators(df):
     df['ema9'] = ta.trend.ema_indicator(df['close'], window=9)
@@ -128,11 +133,27 @@ def calculate_trade_size(df, price, max_cash=5000):
     allocated_cash = base_cash * (0.5 + 0.5 * confidence)  # Use 50%-100% of base_cash
     return int(allocated_cash / price)
 
+def preload_bars(symbol):
+    req = StockBarsRequest(
+        symbol_or_symbols=symbol,
+        timeframe=TimeFrame.Minute,
+        limit=100
+    )
+    bars = data_client.get_stock_bars(req).df
+    return bars[bars["symbol"] == symbol]
+
+ET = ZoneInfo("America/New_York")
+
 async def handle_bar(bar):
     symbol = bar.symbol
-
+ 
     try:
-        now = get_est_now().time()
+        bar_et = bar.timestamp.astimezone(ET)
+        now = bar_et.time()
+
+        # Optional: sanity check server clock vs bar clock
+        est = get_est_now()
+        logger.info("CLOCK CHECK %s server_et=%s bar_et=%s", symbol, est.isoformat(), bar_et.isoformat())
 
         # Initialize position and price data if not already
         if symbol not in positions:
@@ -150,8 +171,7 @@ async def handle_bar(bar):
             "close": bar.close,
             "volume": bar.volume
         }
-        new_df = pd.DataFrame([new_row])
-        df = pd.concat([df, new_df], ignore_index=True)
+        df.loc[len(df)] = new_row
         if len(df) > 100:
             df = df.iloc[-100:]
         price_data[symbol] = df
@@ -166,7 +186,7 @@ async def handle_bar(bar):
                 place_order(symbol, bar.close, df, side="sell")
             return
 
-        # 🛑 Stop stream at or after 4:00 PM
+        # Stop stream at or after 4:00 PM
         if now >= time(16, 0):
             logger.info("Market closed — stopping stream.")
             await stream.stop()
@@ -201,11 +221,14 @@ async def handle_bar(bar):
                 logger.info("Exit signal for %s — selling at %.2f with P/L %.2f%%", symbol,bar.close, change * 100)
                 place_order(symbol, bar.close, df, side="sell")
 
-    except Exception as e:
+    except Exception:
         logger.exception("Exception in handle_bar for %s", symbol)
 
 
 async def stream_symbols(symbols):
+    for symbol in symbols:
+        price_data[symbol] = preload_bars(symbol)
+
     stream.subscribe_bars(handle_bar, *symbols)
     logger.info("Subscribed to symbols: %s", ", ".join(symbols))
 
@@ -223,6 +246,7 @@ async def run_trading_day():
     logger.info("Symbols picked for %s: %s", today, ", ".join(selected_stocks))
 
     await stream_symbols(selected_stocks)
+    asyncio.create_task(stop_at_market_close())
 
     logger.info("[INFO] Stream initialized — listening for live bars...")
 
