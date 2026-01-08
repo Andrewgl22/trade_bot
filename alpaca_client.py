@@ -1,5 +1,5 @@
 from alpaca.trading.client import TradingClient
-from alpaca.trading.historical import StockHistoricalDataClient
+from alpaca.data.historical import StockHistoricalDataClient
 from alpaca.data.live import StockDataStream
 from alpaca.data.enums import DataFeed
 import os
