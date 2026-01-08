@@ -133,14 +133,39 @@ def calculate_trade_size(df, price, max_cash=5000):
     allocated_cash = base_cash * (0.5 + 0.5 * confidence)  # Use 50%-100% of base_cash
     return int(allocated_cash / price)
 
-def preload_bars(symbol):
+def preload_bars(symbol: str, limit: int = 100) -> pd.DataFrame:
     req = StockBarsRequest(
         symbol_or_symbols=symbol,
         timeframe=TimeFrame.Minute,
-        limit=100
+        limit=limit,
     )
-    bars = data_client.get_stock_bars(req).df
-    return bars[bars["symbol"] == symbol]
+
+    df = data_client.get_stock_bars(req).df
+
+    # --- Handle Alpaca DF shapes ---
+    # A) symbol is a column (less common)
+    if "symbol" in df.columns:
+        df = df[df["symbol"] == symbol].copy()
+
+    # B) symbol is in a MultiIndex (common: index levels include symbol + timestamp)
+    elif isinstance(df.index, pd.MultiIndex) and "symbol" in df.index.names:
+        df = df.xs(symbol, level="symbol").copy()
+
+    # C) single-symbol DF with no symbol column and timestamp index (also common)
+    # leave as-is
+
+    # Ensure timestamp is a column (your bot expects it)
+    if "timestamp" not in df.columns:
+        df = df.reset_index()
+
+    # Normalize to exactly what the rest of your code expects
+    needed = ["timestamp", "open", "high", "low", "close", "volume"]
+    missing = [c for c in needed if c not in df.columns]
+    if missing:
+        raise ValueError(f"preload_bars({symbol}) missing columns {missing}. cols={list(df.columns)} index_names={df.index.names}")
+
+    return df[needed].copy()
+
 
 ET = ZoneInfo("America/New_York")
 
