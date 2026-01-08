@@ -46,13 +46,17 @@ async def sleep_until_market_open():
 async def stop_at_market_close():
     est = get_est_now()
     close_dt = est.replace(hour=16, minute=0, second=5, microsecond=0)
-    if est >= close_dt:
-        logger.info("Already past market close — stopping stream.")
-        await stream.stop()
-        return
-    await asyncio.sleep((close_dt - est).total_seconds())
-    logger.info("Closing Time: stopping stream.")
-    await stream.stop()
+    if est < close_dt:
+        await asyncio.sleep((close_dt - est).total_seconds())
+
+    logger.info("Closing Time: requesting stream stop...")
+    try:
+        stream.stop()  # <-- no await
+    except TimeoutError:
+        logger.warning("stream.stop() timed out, but stream may still be stopping.")
+    except Exception:
+        logger.exception("Unexpected error calling stream.stop()")
+
 
 def place_order(symbol, price, df, side="buy"):
     qty = calculate_trade_size(df, price)
@@ -213,8 +217,11 @@ async def handle_bar(bar):
 
         # Stop stream at or after 4:00 PM
         if now >= time(16, 0):
-            logger.info("Market closed — stopping stream.")
-            await stream.stop()
+            logger.info("Market closed — requesting stream stop.")
+            try:
+                stream.stop()
+            except TimeoutError:
+                logger.warning("stream.stop() timed out, but stream may still be stopping.")
             return
 
         # Print debug indicators
