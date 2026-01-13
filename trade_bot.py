@@ -146,30 +146,30 @@ def preload_bars(symbol: str, limit: int = 100) -> pd.DataFrame:
 
     df = data_client.get_stock_bars(req).df
 
-    # --- Handle Alpaca DF shapes ---
-    # A) symbol is a column (less common)
+    # If Alpaca returned nothing, df may be empty (or weird like just 'index' after reset)
+    if df is None or len(df) == 0:
+        logger.warning("Preload: no historical bars returned for %s", symbol)
+        return pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
+
     if "symbol" in df.columns:
         df = df[df["symbol"] == symbol].copy()
-
-    # B) symbol is in a MultiIndex (common: index levels include symbol + timestamp)
     elif isinstance(df.index, pd.MultiIndex) and "symbol" in df.index.names:
         df = df.xs(symbol, level="symbol").copy()
 
-    # C) single-symbol DF with no symbol column and timestamp index (also common)
-    # leave as-is
+    if len(df) == 0:
+        logger.warning("Preload: bars DF empty after filtering for %s", symbol)
+        return pd.DataFrame(columns=["timestamp", "open", "high", "low", "close", "volume"])
 
-    # Ensure timestamp is a column (your bot expects it)
     if "timestamp" not in df.columns:
         df = df.reset_index()
 
-    # Normalize to exactly what the rest of your code expects
     needed = ["timestamp", "open", "high", "low", "close", "volume"]
-    missing = [c for c in needed if c not in df.columns]
-    if missing:
-        raise ValueError(f"preload_bars({symbol}) missing columns {missing}. cols={list(df.columns)} index_names={df.index.names}")
+    if not all(c in df.columns for c in needed):
+        logger.warning("Preload: unexpected schema for %s. cols=%s index_names=%s",
+                       symbol, list(df.columns), df.index.names)
+        return pd.DataFrame(columns=needed)
 
     return df[needed].copy()
-
 
 ET = ZoneInfo("America/New_York")
 
